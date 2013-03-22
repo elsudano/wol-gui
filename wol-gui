@@ -72,7 +72,8 @@ $no_encontrados"
 function alta_mac(){
   local mac="$(kdialog --title "Que dispositivo quiere encender" --inputbox "Introduzca la MAC ADDRESS" "00:19:DB:57:D4:C9")"
   if [[ $? -eq "0" ]]; then
-    nombre="$(kdialog --title "Con que nombre desea guardar esta MAC" --inputbox "Introduzca el nombre del equipo" "portátil")"
+    nombre=$(kdialog --title "Con que nombre desea guardar esta MAC" --inputbox "Introduzca el nombre del equipo" "portátil")
+    nombre=${nombre// /_}
     if [[ $? -eq "0" ]]; then
       if [ -e $bdfile ] && [ -w $bdfile ]; then
 	echo "$nombre$separador$mac">>$bdfile
@@ -89,12 +90,13 @@ function submenu_local(){
     do
       local exe="$exe $comando $dispositivo"
     done < $bdfile
+    kdialog --title "Lista de Ordenadores" --menu "Elija el equipo que quiere encender y si no esta en la lista pulse cancelar" $exe
+    if [[ $? -eq "1" ]]; then
+      alta_mac
+    fi
   else
     alta_mac
-  fi
-  kdialog --title "Lista de Ordenadores" --menu "Elija el equipo que quiere encender y si no esta en la lista pulse cancelar" $exe
-  if [[ $? -eq "1" ]]; then
-    alta_mac
+    menu_main
   fi
 }
 #------------------------------------------------------------Función Submenu Encender red externa--------------------------------------------------------------------------------------------------------
