@@ -90,13 +90,10 @@ function submenu_local(){
     do
       local exe="$exe $comando $dispositivo"
     done < $bdfile
-    kdialog --title "Lista de Ordenadores" --menu "Elija el equipo que quiere encender y si no esta en la lista pulse cancelar" $exe
-    if [[ $? -eq "1" ]]; then
-      alta_mac
-    fi
-  else
+    kdialog --title "Lista de Ordenadores" --menu "Elija el equipo que quiere encender\ny si no esta en la lista pulse cancelar" $exe
+  fi
+  if [[ $? -eq "1" ]]; then
     alta_mac
-    menu_main
   fi
 }
 #------------------------------------------------------------Función Submenu Encender red externa--------------------------------------------------------------------------------------------------------
@@ -107,12 +104,11 @@ function submenu_externa(){
 }
 #------------------------------------------------------------Función Menú Principal---------------------------------------------------------------------------------------------------------------
 function menu_main(){
-  case $(kdialog --title "Wake on Lan GUI" --menu "Elija una opción" pwonnet "Encender ordenador de la misma red" pwoninet "Encender ordenador de una red remota" salir "Salir") in
+  case $(kdialog --title "Wake on Lan GUI" --menu "Elija una opción.............................................." pwonnet "Encender ordenador de la misma red" pwoninet "Encender ordenador de una red remota" salir "Salir") in
     pwonnet)
       wol $(submenu_local)
-      if [[ $? -eq "0" ]]; then
-	menu_main
-      fi;;
+      menu_main
+      ;;
     pwoninet)
       submenu_externa
       if [[ $? -eq "0" ]]; then
