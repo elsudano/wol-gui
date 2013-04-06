@@ -17,8 +17,9 @@ IP_LOCAL=$(echo ${RED[1]} | sed '/REGEX/p')
 MASCARA=$(echo ${RED[3]} | sed '/MASKREGEX/p')
 separador="%"
 bdfile="bd.txt"
+upfile="user_pass.txt"
 unset RED
-BINARIOS=(kdialog wol)
+BINARIOS=(kdialog wol net)
 # kdialog	Este Fichero es para poder ejecutar la interfaz gráfica
 # wol		Este fichero es para poder ocultar las transacciones a través de internet
 
@@ -71,10 +72,10 @@ $no_encontrados"
 #------------------------------------------------------------Función Alta de Dispositivo--------------------------------------------------------------------------------------------------------
 function alta_mac(){
   local mac="$(kdialog --title "Que dispositivo quiere encender" --inputbox "Introduzca la MAC ADDRESS" "00:19:DB:57:D4:C9")"
-  if [[ $? -eq "0" ]]; then
+  if [[ $mac != "" ]]; then
     nombre=$(kdialog --title "Con que nombre desea guardar esta MAC" --inputbox "Introduzca el nombre del equipo" "portátil")
-    nombre=${nombre// /_}
-    if [[ $? -eq "0" ]]; then
+    nombre=${nombre// /_} # Esto es para sustituir los espacios por guión bajo
+    if [[ $nombre != "" ]]; then
       if [ -e $bdfile ] && [ -w $bdfile ]; then
 	echo "$nombre$separador$mac">>$bdfile
       else
@@ -90,10 +91,22 @@ function submenu_local(){
     do
       local exe="$exe $comando $dispositivo"
     done < $bdfile
-    kdialog --title "Lista de Ordenadores" --menu "Elija el equipo que quiere encender\ny si no esta en la lista pulse cancelar" $exe
-  fi
-  if [[ $? -eq "1" ]]; then
+    kdialog --title "Lista de Ordenadores" --menu "Elija el equipo que quiere encender\ny si no esta en la lista pulse cancelar" alta_mac "Dar de alta un equipo nuevo" $exe
+  else
     alta_mac
+  fi
+  if [[ $? -eq "alta_mac" ]]; then
+    alta_mac
+  fi
+}
+#------------------------------------------------------------Función leer fichero de Usuario y Contraseña --------------------------------------------------------------------------------------------------------
+function user_pass(){
+  if [ -e $upfile ]; then
+#    while IFS=$separador read user pass
+#    do
+#      local user_pass="$user%$pass"
+#    done < $upfile
+    echo $exe
   fi
 }
 #------------------------------------------------------------Función Submenu Encender red externa--------------------------------------------------------------------------------------------------------
@@ -104,7 +117,7 @@ function submenu_externa(){
 }
 #------------------------------------------------------------Función Menú Principal---------------------------------------------------------------------------------------------------------------
 function menu_main(){
-  case $(kdialog --title "Wake on Lan GUI" --menu "Elija una opción.............................................." pwonnet "Encender ordenador de la misma red" pwoninet "Encender ordenador de una red remota" salir "Salir") in
+  case $(kdialog --title "Wake on Lan GUI" --menu "Elija una opción.............................................." pwonnet "Encender ordenador de la misma red" pwoninet "Encender ordenador de una red remota" pwoffnet "Apagar un ordenador del Salón" salir "Salir") in
     pwonnet)
       wol $(submenu_local)
       menu_main
@@ -114,7 +127,16 @@ function menu_main(){
       if [[ $? -eq "0" ]]; then
 	menu_main
       fi;;
+    pwoffnet)
+      net RPC SHUTDOWN -f -C "" -I 192.168.1.4 -U $(cat $upfile)
+      if [[ $? -eq "0" ]]; then
+	menu_main
+      fi;;
     salir)
+      if [[ $(kdialog --title "Salir" --yesno "Quiere salir de la aplicación"; echo $?) -eq "1" ]]; then
+	menu_main
+      fi;;
+    "")
       if [[ $(kdialog --title "Salir" --yesno "Quiere salir de la aplicación"; echo $?) -eq "1" ]]; then
 	menu_main
       fi;;
